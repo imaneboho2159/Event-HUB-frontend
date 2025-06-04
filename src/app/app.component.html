@@ -1,1 +1,6 @@
-<router-outlet></router-outlet>
+<div [ngClass]="{'has-sidenav': isAdminRoute}">
+    <app-nav></app-nav>
+    <div class="content">
+        <router-outlet></router-outlet>
+    </div>
+</div>
