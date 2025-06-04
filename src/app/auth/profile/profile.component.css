@@ -15,6 +15,10 @@ mat-card-content p {
     margin: 10px 0;
 }
 
+mat-list {
+    margin-top: 10px;
+}
+
 button {
     width: 100%;
 }

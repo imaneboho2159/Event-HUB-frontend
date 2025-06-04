@@ -6,6 +6,15 @@
         <mat-card-content>
             <p><strong>Email:</strong> {{ user.email }}</p>
             <p><strong>Rôle:</strong> {{ user.role }}</p>
+            <h3>Réservations</h3>
+            <mat-list *ngIf="reservations.length; else noReservations">
+                <mat-list-item *ngFor="let reservation of reservations">
+                    Réservation #{{ reservation.id }} pour l'événement #{{ reservation.eventId }} ({{ reservation.numberOfSeats }} places, réservée le {{ reservation.reservationDate | date: 'shortDate' }})
+                </mat-list-item>
+            </mat-list>
+            <ng-template #noReservations>
+                <p>Aucune réservation trouvée.</p>
+            </ng-template>
         </mat-card-content>
         <mat-card-actions>
             <button mat-raised-button color="warn" (click)="logout()">Déconnexion</button>
