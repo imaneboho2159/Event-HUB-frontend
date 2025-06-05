@@ -1,8 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { AuthService } from '../../core/services/auth.service';
+import { Component } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AuthService, RegisterRequest } from '../../core/services/auth.service';
 import { Router, RouterLink } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,10 +11,9 @@ import { CommonModule } from '@angular/common';
   selector: 'app-register',
   standalone: true,
   imports: [
-    CommonModule,
+    CommonModule, // Added to enable *ngIf
     ReactiveFormsModule,
     RouterLink,
-    MatCardModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule
@@ -23,7 +21,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
 })
-export class RegisterComponent implements OnInit {
+export class RegisterComponent {
   registerForm: FormGroup;
   errorMessage: string | null = null;
 
@@ -38,26 +36,18 @@ export class RegisterComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {}
-
   onSubmit(): void {
     if (this.registerForm.valid) {
-      const { email, password } = this.registerForm.value;
-      this.authService.register(email, password).subscribe({
+      const user: RegisterRequest = this.registerForm.value;
+      this.authService.register(user).subscribe({
         next: () => {
-          this.redirectUser();
+          this.router.navigate(['/client/home']);
         },
-        error: (error) => {
-          this.errorMessage = error.error.message || 'Une erreur est survenue lors de l\'inscription.';
+        error: (err) => {
+          this.errorMessage = 'Registration failed. Email might already exist.';
+          console.error('Registration error:', err);
         }
       });
-    }
-  }  private redirectUser(): void {
-    const role = this.authService.getUserRole();
-    if (role === 'ADMIN') {
-      this.router.navigate(['/admin/dashboard']);
-    } else {
-      this.router.navigate(['/client/home']);
     }
   }
 }

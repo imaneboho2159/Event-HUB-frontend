@@ -1,56 +1,11 @@
-<ng-container *ngIf="isAdminRoute; else nonAdminNav">
-    <!-- Admin Sidebar Navbar -->
-    <div class="sidenav">
-        <div class="sidenav-header">
-            <span>Admin Panel</span>
-        </div>
-        <mat-nav-list>
-            <a mat-list-item routerLink="/admin/dashboard" routerLinkActive="active">
-                <mat-icon>dashboard</mat-icon> Dashboard
-            </a>
-            <a mat-list-item routerLink="/admin/users-management" routerLinkActive="active">
-                <mat-icon>people</mat-icon> Users
-            </a>
-            <a mat-list-item routerLink="/admin/events-management" routerLinkActive="active">
-                <mat-icon>event</mat-icon> Events
-            </a>
-            <a mat-list-item routerLink="/admin/reservations-management" routerLinkActive="active">
-                <mat-icon>book_online</mat-icon> Reservations
-            </a>
-            <a mat-list-item (click)="logout()">
-                <mat-icon>logout</mat-icon> Logout
-            </a>
-        </mat-nav-list>
-    </div>
-</ng-container>
-
-<ng-template #nonAdminNav>
-    <!-- Public/Client Horizontal Navbar -->
-    <mat-toolbar color="primary" class="toolbar">
-        <span class="brand">Event Management</span>
-        <div class="spacer"></div>
-        <ng-container *ngIf="isClientRoute && isLoggedIn && userRole === 'CLIENT'">
-            <button mat-button routerLink="/client/home" routerLinkActive="active-link">Client Home</button>
-            <button mat-button routerLink="/client/events/list" routerLinkActive="active-link">Events</button>
-            <button mat-button routerLink="/client/reservation" routerLinkActive="active-link">Reservations</button>
-        </ng-container>
-        <ng-container *ngIf="!isClientRoute">
-            <button mat-button routerLink="/home" routerLinkActive="active-link">Home</button>
-            <button mat-button routerLink="/about" routerLinkActive="active-link">About</button>
-        </ng-container>
-        <ng-container *ngIf="isLoggedIn; else notLoggedIn">
-            <button mat-button [matMenuTriggerFor]="userMenu">
-        <mat-icon>account_circle</mat-icon> Profile
-      </button>
-            <mat-menu #userMenu="matMenu">
-                <button mat-menu-item routerLink="/auth/profile">View Profile</button>
-                <button mat-menu-item *ngIf="userRole === 'ADMIN'" routerLink="/admin/dashboard">Admin Dashboard</button>
-                <button mat-menu-item (click)="logout()">Logout</button>
-            </mat-menu>
-        </ng-container>
-        <ng-template #notLoggedIn>
-            <button mat-button routerLink="/auth/login" routerLinkActive="active-link">Login</button>
-            <button mat-button routerLink="/auth/register" routerLinkActive="active-link">Register</button>
-        </ng-template>
-    </mat-toolbar>
-</ng-template>
+<mat-toolbar color="primary">
+    <span>Event Management</span>
+    <span class="spacer"></span>
+    <a mat-button routerLink="/client/home">Home</a>
+    <a mat-button routerLink="/client/events">Events</a> @if (isAuthenticated$ | async) {
+    <a mat-button routerLink="/auth/profile">Profile</a> @if (isAdmin) {
+    <a mat-button routerLink="/admin/dashboard">Admin Dashboard</a> }
+    <button mat-button (click)="logout()">Logout</button> } @else {
+    <a mat-button routerLink="/auth/login">Login</a>
+    <a mat-button routerLink="/auth/register">Register</a> }
+</mat-toolbar>

@@ -1,18 +1,24 @@
-import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+import { inject } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { JwtService } from '../../services/jwt.service';
+import { map, take } from 'rxjs/operators';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class AdminGuard implements CanActivate {
-  constructor(private authService: AuthService, private router: Router) {}
+export const adminGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const jwtService = inject(JwtService);
+  const router = inject(Router);
 
-  canActivate(): boolean {
-    if (this.authService.isLoggedIn() && this.authService.getUserRole() === 'ADMIN') {
-      return true;
-    }
-    this.router.navigate(['/auth/login']);
-    return false;
-  }
-}
+  return authService.currentUser$.pipe(
+    take(1),
+    map(token => {
+      console.log('AdminGuard: Token:', token); // Debug log
+      console.log('AdminGuard: Role:', jwtService.getRoleFromToken(token!)); // Debug log
+      if (token && jwtService.getRoleFromToken(token) === 'ADMIN') {
+        return true;
+      }
+      router.navigate(['/client/home']);
+      return false;
+    })
+  );
+};

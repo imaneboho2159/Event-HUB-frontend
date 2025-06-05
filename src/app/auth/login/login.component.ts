@@ -1,8 +1,7 @@
 import { Component } from '@angular/core';
-import { AuthService } from '../../core/services/auth.service';
-import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AuthService, LoginRequest } from '../../core/services/auth.service';
+import { Router, RouterLink } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,9 +11,9 @@ import { CommonModule } from '@angular/common';
   selector: 'app-login',
   standalone: true,
   imports: [
-    CommonModule,
-    FormsModule,
-    MatCardModule,
+    CommonModule, // Added to enable *ngIf
+    ReactiveFormsModule,
+    RouterLink,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule
@@ -23,30 +22,32 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
-  email: string = '';
-  password: string = '';
-  errorMessage: string = '';
+  loginForm: FormGroup;
+  errorMessage: string | null = null;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router
+  ) {
+    this.loginForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]]
+    });
+  }
 
   onSubmit(): void {
-    if (!this.email || !this.password) {
-      this.errorMessage = 'Please fill in all fields';
-      return;
-    }
-
-    this.authService.login(this.email, this.password).subscribe({
-      next: () => {
-        const role = this.authService.getUserRole();
-        if (role === 'ADMIN') {
-          this.router.navigate(['/admin/dashboard']);
-        } else {
+    if (this.loginForm.valid) {
+      const credentials: LoginRequest = this.loginForm.value;
+      this.authService.login(credentials).subscribe({
+        next: () => {
           this.router.navigate(['/client/home']);
+        },
+        error: (err) => {
+          this.errorMessage = 'Invalid email or password';
+          console.error('Login error:', err);
         }
-      },
-      error: () => {
-        this.errorMessage = 'Invalid email or password';
-      }
-    });
+      });
+    }
   }
 }

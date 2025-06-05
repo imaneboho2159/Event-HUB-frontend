@@ -1,0 +1,18 @@
+.event-card {
+    max-width: 300px;
+    margin: 10px;
+}
+
+.error-message {
+    color: red;
+    font-size: 14px;
+}
+
+.success-message {
+    color: green;
+    font-size: 14px;
+}
+
+mat-form-field {
+    width: 100%;
+}

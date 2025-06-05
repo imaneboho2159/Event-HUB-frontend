@@ -1,52 +1,30 @@
-import { Component, OnInit } from '@angular/core';
-import { AuthService } from '../../../core/services/auth.service';
-import { Router, RouterLink, NavigationEnd } from '@angular/router';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink, Router } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
+import { JwtService } from '../../../services/jwt.service';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatIconModule } from '@angular/material/icon';
-import { MatListModule } from '@angular/material/list';
-import { filter } from 'rxjs/operators';
 
 @Component({
-  selector: 'app-nav',
+  selector: 'app-navbar',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatToolbarModule,
-    MatButtonModule,
-    MatMenuModule,
-    MatIconModule,
-    MatListModule,
-    RouterLink
-  ],
+  imports: [CommonModule, RouterLink, MatToolbarModule, MatButtonModule],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
-export class NavbarComponent implements OnInit {
-  isAdminRoute = false;
-  isClientRoute = false;
-  isLoggedIn = false;
-  userRole: string | null = null;
+export class NavbarComponent {
+  isAuthenticated$ = this.authService.currentUser$;
+  isAdmin = false;
 
-  constructor(private authService: AuthService, private router: Router) {}
-
-  ngOnInit(): void {
-    this.updateNavState();
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe(() => {
-      this.updateNavState();
+  constructor(
+    private authService: AuthService,
+    private jwtService: JwtService,
+    private router: Router
+  ) {
+    this.isAuthenticated$.subscribe(token => {
+      this.isAdmin = token ? this.jwtService.getRoleFromToken(token) === 'ADMIN' : false;
     });
-  }
-
-  private updateNavState(): void {
-    this.isLoggedIn = this.authService.isLoggedIn();
-    this.userRole = this.authService.getUserRole();
-    const url = this.router.url;
-    this.isAdminRoute = url.startsWith('/admin');
-    this.isClientRoute = url.startsWith('/client') && !this.isAdminRoute;
   }
 
   logout(): void {

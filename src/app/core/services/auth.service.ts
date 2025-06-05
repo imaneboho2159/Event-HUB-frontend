@@ -1,47 +1,72 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
-import { Router } from '@angular/router';
+export interface AuthResponse {
+  token: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private tokenKey = 'jwt_token';
-  private roleKey = 'user_role';
+  private apiUrl = 'http://localhost:8080/api/auth';
+  private currentUserSubject = new BehaviorSubject<string | null>(null);
+  currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient) {
+    const token = localStorage.getItem('token');
+    if (token) {
+      console.log('AuthService: Loaded token from localStorage:', token); // Debug log
+      this.currentUserSubject.next(token);
+    }
+  }
 
-  login(email: string, password: string): Observable<any> {
-    return this.http.post(`http://localhost:8080/api/auth/login`, { email, password }).pipe(
-      tap((response: any) => {
-        localStorage.setItem(this.tokenKey, response.token);
-        localStorage.setItem(this.roleKey, response.role);
+  register(user: RegisterRequest): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, user).pipe(
+      tap(response => {
+        console.log('Register response:', response); // Debug log
+        if (response.token) {
+          localStorage.setItem('token', response.token);
+          this.currentUserSubject.next(response.token);
+        }
       })
     );
   }
 
-  register(email: string, password: string): Observable<any> {
-    return this.http.post(`http://localhost:8080/api/auth/register`, { email, password });
+  login(credentials: LoginRequest): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
+      tap(response => {
+        console.log('Login response:', response); // Debug log
+        if (response.token) {
+          localStorage.setItem('token', response.token);
+          this.currentUserSubject.next(response.token);
+        }
+      })
+    );
   }
 
   logout(): void {
-    localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem(this.roleKey);
-    this.router.navigate(['/auth/login']);
-  }
-
-  isLoggedIn(): boolean {
-    return !!localStorage.getItem(this.tokenKey);
-  }
-
-  getUserRole(): string | null {
-    return localStorage.getItem(this.roleKey);
+    localStorage.removeItem('token');
+    this.currentUserSubject.next(null);
   }
 
   getToken(): string | null {
-    return localStorage.getItem(this.tokenKey);
+    return localStorage.getItem('token');
+  }
+
+  isAuthenticated(): boolean {
+    return !!this.getToken();
   }
 }
