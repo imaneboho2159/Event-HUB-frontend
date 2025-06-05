@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 export interface EventDto {
   id: number;
@@ -15,15 +16,27 @@ export interface EventDto {
   providedIn: 'root'
 })
 export class EventService {
-  private apiUrl = 'http://localhost:8080/api/events';
+  private apiUrl = '/api/events'; // Update to '/api/events' if using proxy
 
   constructor(private http: HttpClient) {}
 
   getEvents(): Observable<EventDto[]> {
-    return this.http.get<EventDto[]>(this.apiUrl);
+    console.log('Fetching events from:', this.apiUrl);
+    return this.http.get<EventDto[]>(this.apiUrl).pipe(
+      catchError(err => {
+        console.error('HTTP Error Details:', err);
+        return throwError(() => err);
+      })
+    );
   }
 
   getEventById(id: number): Observable<EventDto> {
-    return this.http.get<EventDto>(`${this.apiUrl}/${id}`);
+    console.log('Fetching event by ID:', id);
+    return this.http.get<EventDto>(`${this.apiUrl}/${id}`).pipe(
+      catchError(err => {
+        console.error('HTTP Error Details:', err);
+        return throwError(() => err);
+      })
+    );
   }
 }

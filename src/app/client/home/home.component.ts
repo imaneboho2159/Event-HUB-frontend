@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { EventCardComponent } from '../../shared/components/event-card/event-card.component';
-import { EventDto, EventService } from '../../core/services/event.service';
+import { EventCardComponent, EventDto } from '../../shared/components/event-card/event-card.component';
+import { EventService } from '../../core/services/event.service';
 
 @Component({
   selector: 'app-home',
@@ -12,13 +12,21 @@ import { EventDto, EventService } from '../../core/services/event.service';
 })
 export class HomeComponent implements OnInit {
   events: EventDto[] = [];
+  errorMessage: string | null = null;
 
   constructor(private eventService: EventService) {}
 
   ngOnInit(): void {
-    this.eventService.getEvents().subscribe({
-      next: (events) => this.events = events,
-      error: (err) => console.error('Error fetching events:', err)
-    });
-  }
+  this.eventService.getEvents().subscribe({
+    next: (events) => {
+      console.log('Events loaded:', events);
+      this.events = events;
+      this.errorMessage = null;
+    },
+    error: (err) => {
+      this.errorMessage = 'Failed to load events. Please check your connection or try again later.';
+      console.error('Error fetching events:', err);
+    }
+  });
+}
 }
